@@ -77,21 +77,23 @@ class Config(object):
         filename = osp.abspath(osp.expanduser(filename))
         check_file_exist(filename)
         if filename.endswith('.py'):
-            sys.path.append(osp.dirname(filename))
             module_name = osp.basename(filename)[:-3]
             if '.' in module_name:
                 raise ValueError('Dots are not allowed in config file path.')
+            config_dir = osp.dirname(filename)
+            sys.path.insert(0, config_dir)
             mod = import_module(module_name)
+            sys.path.pop(0)
             cfg_dict = {
                 name: value
                 for name, value in mod.__dict__.items()
                 if not name.startswith('__')
             }
-        elif filename.endswith(('.yaml', '.json')):
+        elif filename.endswith(('.yml', '.yaml', '.json')):
             import mmcv
             cfg_dict = mmcv.load(filename)
         else:
-            raise IOError('Only py/yaml/json type are supported now!')
+            raise IOError('Only py/yml/yaml/json type are supported now!')
         return Config(cfg_dict, filename=filename)
 
     @staticmethod
